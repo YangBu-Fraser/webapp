@@ -18,9 +18,10 @@ public class HealthCheckServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Disallow payload
-        if (req.getContentLength() > 0) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        // Check if the request has a body
+        if (req.getContentLength() > 0 || req.getReader().readLine() != null) {
+            resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
+            resp.setHeader("Cache-Control", "no-cache");
             return;
         }
 
@@ -37,12 +38,12 @@ public class HealthCheckServlet extends HttpServlet {
             entityManager.persist(healthCheck);
 
             transaction.commit();
-            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setStatus(HttpServletResponse.SC_OK); // 200
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
-            resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+            resp.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
         } finally {
             entityManager.close();
         }
@@ -53,16 +54,16 @@ public class HealthCheckServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED); // 405
     }
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED); // 405
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        resp.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED); // 405
     }
 }
